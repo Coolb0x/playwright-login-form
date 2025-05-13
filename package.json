@@ -1,5 +1,22 @@
 {
-  "dependencies": {
-    "@playwright/test": "^1.52.0"
+  "name": "playwright-login-form",
+  "version": "1.0.0",
+  "description": "Test automation suite for a demo login form",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Coolb0x/playwright-login-form.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Coolb0x/playwright-login-form/issues"
+  },
+  "homepage": "https://github.com/Coolb0x/playwright-login-form#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.15.17"
   }
 }
