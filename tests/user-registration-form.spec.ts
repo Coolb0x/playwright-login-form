@@ -120,7 +120,7 @@ test.describe("Automation Test Suite - User Registration Form", () => {
       expect(passwordClass).toContain("error");
       await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
     });
-    test("Toggle password visibility button - Expect password field to have type text, toggle button to change title and match password input value ", async () => {
+    test("Fill in valid password and toggle password visibility button - Expect password field to have type text, toggle button to change title and match password input value ", async () => {
       await registrationForm.fillPassword(validTestInput.validPassword);
       await registrationForm.page.locator(".toggle-password-btn").click();
 
