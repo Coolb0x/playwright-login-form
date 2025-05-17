@@ -14,8 +14,8 @@ export const invalidEmailFormat = {
   invalidEmailNoDomain: "test@test.",
   invalidEmailNoUser: "@test.net",
   invalidEmailNoUserOrDomain: "@.net",
-  invalidEmailNoUserOrTLD: "@test.",
-  invalidEmailNoUserOrDomainOrTLD: "@test",
+  invalidEmailNoUserOrTld: "@test.",
+  invalidEmailNoUserOrDomainOrTld: "@test",
 };
 
 export const invalidPasswordInput = {
