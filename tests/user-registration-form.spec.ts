@@ -1,132 +1,70 @@
 import { test, expect } from "@playwright/test";
 import { RegistrationForm } from "../src/pages/registration.page";
-import { validTestInput, invalidEmailFormat, invalidPasswordInput } from "../test-data/test-data";
-
-const pageUrl = "https://abc13514.sg-host.com/";
-const apiUrl = "https://abc13514.sg-host.com/api.php";
+import { validTestInput } from "../test-data/valid-input";
+import { invalidEmailFormat } from "../test-data/invalid-email-format";
+import { invalidPasswordInput } from "../test-data/invalid-password-input";
+import { validPasswordStrength } from "../test-data/valid-password-strength";
+import { apiRequests } from "../test-data/api-requests";
+import { callApiWithData, checkApiResponse } from "../tests/utils/api-helpers";
 
 test.describe("Automation Test Suite - User Registration Form", () => {
   let registrationForm: RegistrationForm;
 
   test.beforeEach(async ({ page }) => {
-    // Always start from the registration page
-    await page.goto(pageUrl);
+    await page.goto("/");
     registrationForm = new RegistrationForm(page);
   });
 
   test.describe("Email Address field", async () => {
-    for (const invalidEmailInputEntry of Object.entries(invalidEmailFormat)) {
-      const [key, value] = invalidEmailInputEntry;
-      test(`Fill in invalid email format (${key}) - Expect validation email error, error class and confirm button to be disabled`, async () => {
+    for (const key of Object.keys(invalidEmailFormat)) {
+      const { value, testDescription, errorMessage } = invalidEmailFormat[key];
+      test(testDescription, async () => {
         await registrationForm.fillEmail(value);
-        await expect(
-          registrationForm.getErrorMessageLocator("Please enter a valid email address")
-        ).toBeVisible();
-        const emailInputClass = await registrationForm.emailLocator().getAttribute("class");
-        expect(emailInputClass).toContain("error");
-        await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
+        await registrationForm.expectLineError(errorMessage, "email");
       });
     }
-
-    test("Fill in invalid email address above max length - Expect validation email error, error class and confirm button to be disabled", async () => {
-      await registrationForm.fillEmail("test@test1234567891234.net");
-      await expect(registrationForm.getErrorMessageLocator("Email must not exceed 25 characters")).toBeVisible();
-      const emailInputClass = await registrationForm.emailLocator().getAttribute("class");
-      expect(emailInputClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
-
-    test("Fill in invalid email address only empty spaces - Expect validation email error, error class and confirm button to be disabled", async () => {
-      await registrationForm.fillEmail("             ");
-      await expect(registrationForm.getErrorMessageLocator("Email is required")).toBeVisible();
-      const emailInputClass = await registrationForm.emailLocator().getAttribute("class");
-      expect(emailInputClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
   });
 
   test.describe("Confirm Email field", async () => {
     test("Fill in invalid email and invalid confirm email - Expect enter a valid email address, class error and disabled button", async () => {
-      await registrationForm.fillEmail(invalidEmailFormat.invalidEmailNoTld);
-      await registrationForm.fillConfirmEmail(invalidEmailFormat.invalidEmailNoTld);
-      await expect(registrationForm.getErrorMessageLocator("Please enter a valid email address")).toBeVisible();
-      const emailInputClass = await registrationForm.emailLocator().getAttribute("class");
-      expect(emailInputClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
+      await registrationForm.fillEmail(invalidEmailFormat.invalidEmailNoTld.value);
+      await registrationForm.fillConfirmEmail(invalidEmailFormat.invalidEmailNoTld.value);
+      await registrationForm.expectLineError("Please enter a valid email address", "email");
     });
 
     test("Fill in valid email and different confirm email - Expect emails do not match, class error and disabled button", async () => {
       await registrationForm.fillEmail(validTestInput.validEmail);
       await registrationForm.fillConfirmEmail(validTestInput.diffrentConfirmEmail);
-      await expect(registrationForm.getErrorMessageLocator("Emails do not match")).toBeVisible();
-      const emailConfirmClass = await registrationForm.confirmEmailLocator().getAttribute("class");
-      expect(emailConfirmClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
+      await registrationForm.expectLineError("Emails do not match", "confirmEmail");
     });
 
-    test("Fill in valid email and valid confirm email - Expect no error class, and disabled confirm button", async () => {
-      await registrationForm.fillEmail(validTestInput.validEmail);
-      await registrationForm.fillConfirmEmail(validTestInput.validEmail);
-      await expect(registrationForm.getErrorMessageLocator("Emails do not match")).not.toBeVisible();
-      const emailConfirmClass = await registrationForm.confirmEmailLocator().getAttribute("class");
-      expect(emailConfirmClass).not.toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
+    test("Fill in empty spaces for email and confirm email - Expect error class, and disabled confirm button", async () => {
+      await registrationForm.fillEmail(invalidEmailFormat.invalidEmailEmpty.value);
+      await registrationForm.fillConfirmEmail(invalidEmailFormat.invalidEmailEmpty.value);
+      await registrationForm.expectLineError("Email is required", "email");
     });
   });
 
   test.describe("Password field", async () => {
-    test("Fill in invalid password empty spaces - Expect must contain capital letter, class error and disabled confirm button", async () => {
-      await registrationForm.fillPassword(invalidPasswordInput.invalidPasswordEmptySpaces);
-      await expect(
-        registrationForm.getErrorMessageLocator("Password must contain at least one capital letter")
-      ).toBeVisible();
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
-    test("Fill in invalid password too short - Expect password must be between 6 and 20 characters, class error and disabled confirm button", async () => {
-      await registrationForm.fillPassword(invalidPasswordInput.invalidPasswordTooShort);
-      await expect(
-        registrationForm.getErrorMessageLocator("Password must be between 6 and 20 characters")
-      ).toBeVisible();
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
-    test("Fill in invalid password too long - Expect password must be between 6 and 20 characters, class error and disabled confirm button", async () => {
-      await registrationForm.fillPassword(invalidPasswordInput.invalidPasswordTooLong);
-      await expect(
-        registrationForm.getErrorMessageLocator("Password must be between 6 and 20 characters")
-      ).toBeVisible();
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
-    test("Fill in invalid password no digit - Expect must contain digit, class error and disabled confirm button", async () => {
-      await registrationForm.fillPassword(invalidPasswordInput.invalidPasswordNoDigit);
-      await expect(
-        registrationForm.getErrorMessageLocator("Password must contain at least one digit")
-      ).toBeVisible();
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
-    test("Fill in invalid password no uppercase - Expect must contain capital letter, class error and disabled confirm button", async () => {
-      await registrationForm.fillPassword(invalidPasswordInput.invalidPasswordNoUppercase);
-      await expect(
-        registrationForm.getErrorMessageLocator("Password must contain at least one capital letter")
-      ).toBeVisible();
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      await expect(registrationForm.confirmBtnLocator()).toBeDisabled();
-    });
+    for (const key of Object.keys(invalidPasswordInput)) {
+      const { invalidPasswordValue, testDescription, errorMessage } = invalidPasswordInput[key];
+      test(testDescription, async () => {
+        await registrationForm.fillPassword(invalidPasswordValue);
+        await registrationForm.expectLineError(errorMessage, "password");
+      });
+    }
+
     test("Fill in valid password and toggle password visibility button - Expect password field to have type text, toggle button to change title and match password input value ", async () => {
       await registrationForm.fillPassword(validTestInput.validPassword);
       await registrationForm.page.locator(".toggle-password-btn").click();
 
-      const passwordFieldType = await registrationForm.passwordLocator().getAttribute("type");
+      const passwordFieldType = await registrationForm.page
+        .locator('[data-automation="password-field"]')
+        .getAttribute("type");
       expect(passwordFieldType).toBe("text");
-      const passwordFieldValue = await registrationForm.passwordLocator().inputValue();
+      const passwordFieldValue = await registrationForm.page
+        .locator('[data-automation="password-field"]')
+        .inputValue();
       expect(passwordFieldValue).toBe(validTestInput.validPassword);
       const passwordToggleBtnTitle = await registrationForm.page
         .locator(".toggle-password-btn")
@@ -135,139 +73,23 @@ test.describe("Automation Test Suite - User Registration Form", () => {
     });
   });
 
-  test.describe("Password strenght indicator", async () => {
-    test("Password indicator with moderate password - Expect indicator to be orange and 40% width", async () => {
-      await registrationForm.fillPassword(validTestInput.validPassword);
-      const passwordStrengthBar = await registrationForm.passwordStrenghtBarIndicatorLocator();
-      const width = await passwordStrengthBar.evaluate(el => el.style.width);
-      const color = await passwordStrengthBar.evaluate(el => el.style.backgroundColor);
-      expect(width).toBe("40%");
-      expect(color).toBe("rgb(243, 156, 18)");
-    });
-
-    test("Password indicator with strong password - Expect indicator to be blue and 80% width", async () => {
-      await registrationForm.fillPassword(validTestInput.strongPassword);
-      const passwordStrengthBar = await registrationForm.passwordStrenghtBarIndicatorLocator();
-      const width = await passwordStrengthBar.evaluate(el => el.style.width);
-      const color = await passwordStrengthBar.evaluate(el => el.style.backgroundColor);
-      expect(width).toBe("80%");
-      expect(color).toBe("rgb(52, 152, 219)");
-    });
-
-    test("Password indicator with very strong password - Expect indicator to be green and 100% width", async () => {
-      await registrationForm.fillPassword(validTestInput.veryStrongPassword);
-      const passwordStrengthBar = await registrationForm.passwordStrenghtBarIndicatorLocator();
-      const width = await passwordStrengthBar.evaluate(el => el.style.width);
-      const color = await passwordStrengthBar.evaluate(el => el.style.backgroundColor);
-      expect(width).toBe("100%");
-      expect(color).toBe("rgb(39, 174, 96)");
-    });
+  test.describe("Password strength indicator", async () => {
+    for (const strength of Object.keys(validPasswordStrength)) {
+      test(`Password strength indicator with ${strength} password`, async () => {
+        await registrationForm.fillPassword(validPasswordStrength[strength]);
+        await registrationForm.expectPasswordStrenghtBar(strength);
+      });
+    }
   });
 
   test.describe("API endpoint tests", async () => {
-    test("API call with valid details - Expect correct content type and response body", async ({ request }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: validTestInput.validEmail,
-        confirmEmail: validTestInput.validEmail,
-        password: validTestInput.validPassword,
+    for (const key of Object.keys(apiRequests)) {
+      const testCaseData = apiRequests[key];
+      test(testCaseData.testDescription, async ({ request }) => {
+        const response = await callApiWithData(request, testCaseData.request);
+        await checkApiResponse(response, testCaseData);
       });
-
-      expect(response.headers()["content-type"]).toBe("application/json");
-      const responseBody = await response.json();
-      expect(responseBody).toMatchObject({
-        success: true,
-        message: "Registration successful",
-        errors: expect.any(Array),
-        timestamp: expect.any(String),
-      });
-    });
-    test("API call with valid details - Expect 200 OK and message registration successfull", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: validTestInput.validEmail,
-        confirmEmail: validTestInput.validEmail,
-        password: validTestInput.validPassword,
-      });
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Registration successful");
-    });
-
-    test("API call with valid email but confirm email does not match - Expect 400 Bad Request and error messages", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: validTestInput.validEmail,
-        confirmEmail: validTestInput.diffrentConfirmEmail,
-        password: invalidPasswordInput.invalidPasswordNoUppercase,
-      });
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Validation failed");
-      expect(responseBody.errors.confirmEmail).toEqual("Emails do not match");
-      expect(responseBody.errors.password).toEqual("Password must contain at least one capital letter");
-    });
-
-    test("API call with invalid email and password that are too long - Expect 400 Bad Request and error messages", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: "test@test1234567891234.net",
-        confirmEmail: "test@test1234567891234.net",
-        password: invalidPasswordInput.invalidPasswordTooLong,
-      });
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Validation failed");
-      expect(responseBody.errors.email).toEqual("Email must not exceed 25 characters");
-      expect(responseBody.errors.password).toEqual("Password must be between 6 and 20 characters");
-    });
-
-    test("API call with invalid email and password with no capital letter - Expect 400 Bad Request and error messages", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: invalidEmailFormat.invalidEmailNoTld,
-        confirmEmail: invalidEmailFormat.invalidEmailNoTld,
-        password: invalidPasswordInput.invalidPasswordNoUppercase,
-      });
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Validation failed");
-      expect(responseBody.errors.email).toEqual("Please enter a valid email address");
-      expect(responseBody.errors.password).toEqual("Password must contain at least one capital letter");
-    });
-
-    test("API call with invalid email and password with no digit - Expect 400 Bad Request and error messages", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: invalidEmailFormat.invalidEmailNoUserOrDomain,
-        confirmEmail: invalidEmailFormat.invalidEmailNoUserOrDomain,
-        password: invalidPasswordInput.invalidPasswordNoDigit,
-      });
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Validation failed");
-      expect(responseBody.errors.email).toEqual("Please enter a valid email address");
-      expect(responseBody.errors.password).toEqual("Password must contain at least one digit");
-    });
-
-    test("API call with invalid email and password is too short - Expect 400 Bad Request and error messages", async ({
-      request,
-    }) => {
-      const response = await registrationForm.directApiRequestWithCustomData(pageUrl, apiUrl, request, {
-        email: invalidEmailFormat.invalidEmailNoAt,
-        confirmEmail: invalidEmailFormat.invalidEmailNoAt,
-        password: invalidPasswordInput.invalidPasswordTooShort,
-      });
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Validation failed");
-      expect(responseBody.errors.email).toEqual("Please enter a valid email address");
-      expect(responseBody.errors.password).toEqual("Password must be between 6 and 20 characters");
-    });
+    }
   });
 
   test.describe("Generic user flows", async () => {
@@ -275,28 +97,21 @@ test.describe("Automation Test Suite - User Registration Form", () => {
       await registrationForm.fillEmail(validTestInput.validEmail);
       await registrationForm.fillConfirmEmail(validTestInput.validEmail);
       await registrationForm.fillPassword(validTestInput.validPassword);
-      const response = await registrationForm.clickConfirmAndwaitForResponseFromApi(apiUrl);
+      const response = await registrationForm.clickConfirmAndwaitForResponseFromApi();
       await expect(registrationForm.page.getByText("Registration successful!")).toBeVisible();
       expect(response.status()).toBe(200);
     });
 
     test("Click confirm with no input - Expect required input errors to show up", async () => {
-      const apiRequested = await registrationForm.checkIfApiRequestsAreMadeOnConfirmClick(apiUrl);
-      await expect(registrationForm.page.getByText("Email is required")).toBeVisible();
-      await expect(registrationForm.page.getByText("Please confirm your email")).toBeVisible();
-      await expect(registrationForm.page.getByText("Password is required")).toBeVisible();
-      expect(apiRequested).toBe(false);
-    });
-
-    test("Click confirm with no input - Expect all inputs to have class error", async () => {
-      const apiRequested = await registrationForm.checkIfApiRequestsAreMadeOnConfirmClick(apiUrl);
-      const emailInputClass = await registrationForm.emailLocator().getAttribute("class");
-      expect(emailInputClass).toContain("error");
-      const emailConfirmClass = await registrationForm.confirmEmailLocator().getAttribute("class");
-      expect(emailConfirmClass).toContain("error");
-      const passwordClass = await registrationForm.passwordLocator().getAttribute("class");
-      expect(passwordClass).toContain("error");
-      expect(apiRequested).toBe(false);
+      await registrationForm.clickConfirmButton();
+      const skipConfirmButtonCheck = true;
+      await registrationForm.expectLineError("Email is required", "email", skipConfirmButtonCheck);
+      await registrationForm.expectLineError(
+        "Please confirm your email",
+        "confirmEmail",
+        skipConfirmButtonCheck
+      );
+      await registrationForm.expectLineError("Password is required", "password", skipConfirmButtonCheck);
     });
   });
 });
