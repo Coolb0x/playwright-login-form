@@ -23,6 +23,10 @@ Test automation suite for a demo login form
    npx playwright test tests/user-registration-form.spec.ts
    ```
 
+### Generated Playwright-report
+
+[<img alt="playwright-report" width="375px" src="https://testb0x.net/playwright-report/Screenshot.png" />](https://testb0x.net/user-login-form/playwright-report/index.html)
+
 ### Brief Explanation of Approach and Choices
 
 - **Page Object Model (POM):**
