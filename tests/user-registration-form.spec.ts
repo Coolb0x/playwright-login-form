@@ -5,7 +5,7 @@ import { invalidEmailFormat } from "../test-data/invalid-email-format";
 import { invalidPasswordInput } from "../test-data/invalid-password-input";
 import { validPasswordStrength } from "../test-data/valid-password-strength";
 import { apiRequests } from "../test-data/api-requests";
-import { callApiWithData, checkApiResponse } from "../tests/utils/api-helpers";
+import { callApiWithData, checkApiResponse } from "../utils/api-helpers";
 
 test.describe("Automation Test Suite - User Registration Form", () => {
   let registrationForm: RegistrationForm;
