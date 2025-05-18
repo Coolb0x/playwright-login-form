@@ -56,20 +56,8 @@ test.describe("Automation Test Suite - User Registration Form", () => {
 
     test("Fill in valid password and toggle password visibility button - Expect password field to have type text, toggle button to change title and match password input value ", async () => {
       await registrationForm.fillPassword(validTestInput.validPassword);
-      await registrationForm.page.locator(".toggle-password-btn").click();
-
-      const passwordFieldType = await registrationForm.page
-        .locator('[data-automation="password-field"]')
-        .getAttribute("type");
-      expect(passwordFieldType).toBe("text");
-      const passwordFieldValue = await registrationForm.page
-        .locator('[data-automation="password-field"]')
-        .inputValue();
-      expect(passwordFieldValue).toBe(validTestInput.validPassword);
-      const passwordToggleBtnTitle = await registrationForm.page
-        .locator(".toggle-password-btn")
-        .getAttribute("title");
-      expect(passwordToggleBtnTitle).toBe("Hide password");
+      await registrationForm.togglePasswordVisibility();
+      await registrationForm.expectPasswordVisibility(validTestInput.validPassword);
     });
   });
 
@@ -112,6 +100,19 @@ test.describe("Automation Test Suite - User Registration Form", () => {
         skipConfirmButtonCheck
       );
       await registrationForm.expectLineError("Password is required", "password", skipConfirmButtonCheck);
+    });
+
+    test("Valid input data, but API is unavailable", async ({ page }) => {
+      await page.route("**/api.php", route => {
+        route.abort("failed");
+      });
+      await page.goto("/");
+      const registrationForm = new RegistrationForm(page);
+      await registrationForm.fillEmail(validTestInput.validEmail);
+      await registrationForm.fillConfirmEmail(validTestInput.validEmail);
+      await registrationForm.fillPassword(validTestInput.validPassword);
+      await registrationForm.clickConfirmButton();
+      expect(registrationForm.page.getByText("Network error. Please try again later.")).toBeVisible();
     });
   });
 });

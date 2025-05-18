@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 interface apiData {
+  blockNetwork: boolean;
   email: string;
   confirmEmail: string;
   password: string;

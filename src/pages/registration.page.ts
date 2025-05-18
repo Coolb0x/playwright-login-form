@@ -11,6 +11,7 @@ export class RegistrationForm {
   private readonly passwordInput: Locator;
   private readonly confirmButton: Locator;
   private readonly passwordStrengthBar: Locator;
+  private readonly passwordVisibilityToggle: Locator;
 
   /**
    * Creates an instance of RegistrationForm.
@@ -23,6 +24,7 @@ export class RegistrationForm {
     this.passwordInput = this.page.locator('[data-automation="password-field"]');
     this.confirmButton = this.page.locator("#submitBtn");
     this.passwordStrengthBar = this.page.locator('[id="strength-bar"]');
+    this.passwordVisibilityToggle = this.page.locator(".toggle-password-btn");
   }
 
   /**
@@ -81,6 +83,28 @@ export class RegistrationForm {
     }
   }
 
+  async togglePasswordVisibility(): Promise<void> {
+    return this.passwordVisibilityToggle.click();
+  }
+
+  async expectPasswordVisibility(passwordValue): Promise<void> {
+    const passwordFieldType = await this.passwordInput.getAttribute("type");
+
+    test.step("Check password field type", async () => {
+      expect(passwordFieldType).toBe("text");
+    });
+
+    const passwordFieldValue = await this.passwordInput.inputValue();
+    test.step("Check password field value", async () => {
+      expect(passwordFieldValue).toBe(passwordValue);
+    });
+
+    const passwordToggleBtnTitle = await this.passwordVisibilityToggle.getAttribute("title");
+    test.step("Check password toggle button title", async () => {
+      expect(passwordToggleBtnTitle).toBe("Hide password");
+    });
+  }
+
   /**
    * Asserts the password strength bar's width and color for a given strength level.
    * @param strength - The password strength level ("moderate", "strong", or "veryStrong").
@@ -89,8 +113,10 @@ export class RegistrationForm {
     await test.step(`Check password strength bar for '${strength}'`, async () => {
       const width = await this.passwordStrengthBar.evaluate(el => el.style.width);
       const color = await this.passwordStrengthBar.evaluate(el => el.style.backgroundColor);
-
-      if (strength === "moderate") {
+      if (strength === "weak") {
+        expect(width).toBe("20%");
+        expect(color).toBe("rgb(231, 76, 60)");
+      } else if (strength === "moderate") {
         expect(width).toBe("40%");
         expect(color).toBe("rgb(243, 156, 18)");
       } else if (strength === "strong") {
