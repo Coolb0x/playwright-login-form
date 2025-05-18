@@ -7,7 +7,7 @@ pipeline {
     }
 
     tools {
-        nodejs 'NodeJS-18' // Still useful for npm/npx commands if not globally installed in the agent image
+        nodejs 'NodeJS_24' // Still useful for npm/npx commands if not globally installed in the agent image
     }
 
     stages {
