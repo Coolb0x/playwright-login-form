@@ -1,29 +1,38 @@
 pipeline {
-    agent any // Runs on any available agent (master by default in a simple setup)
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.44.0-jammy' // Use a specific version
+            // args '-u root' // If you needed to run something as root inside this specific container, but usually not needed for Playwright itself.
+        }
+    }
 
     tools {
-        nodejs 'NodeJS_24' // Matches the NodeJS installation name configured in Jenkins
+        nodejs 'NodeJS-18' // Still useful for npm/npx commands if not globally installed in the agent image
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Coolb0x/playwright-login-form' // Replace with your repo URL
-                // If your repository is private, you'll need to configure credentials in Jenkins
-                // and use: checkout([$class: 'GitSCM', branches: [[name: '*/main']],
-                // userRemoteConfigs: [[credentialsId: 'YOUR_JENKINS_CREDENTIAL_ID', url: 'YOUR_GITHUB_REPOSITORY_URL']]])
+                git branch: 'main', url: 'https://github.com/Coolb0x/playwright-login-form'
+                // Add credentials if private
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Project Dependencies') {
             steps {
-                sh 'npm ci' // 'npm ci' is generally preferred for CI for clean installs
+                sh 'npm ci'
             }
         }
 
-        stage('Install Playwright Browsers') {
+        // Playwright browsers and most OS deps are already in mcr.microsoft.com/playwright image
+        // You might only need to run `npx playwright install` if you want to ensure
+        // exact browser versions tied to your project's playwright version, or if they aren't bundled.
+        // However, these images usually come with browsers pre-installed.
+        // The playwright install --with-deps might be very fast or not needed for OS deps.
+        stage('Install/Verify Playwright Browsers (if needed)') {
             steps {
-                // --with-deps installs necessary OS dependencies for headless browsers
+                // This ensures browsers match your Playwright version
+                // The --with-deps part might be redundant here for system libs.
                 sh 'npx playwright install --with-deps'
             }
         }
@@ -37,10 +46,7 @@ pipeline {
 
     post {
         always {
-            // Publish JUnit test results
             junit 'test-results/junit-results.xml'
-
-            // Publish Playwright HTML report
             publishHTML(target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
@@ -49,9 +55,6 @@ pipeline {
                 reportFiles: 'index.html',
                 reportName: 'Playwright HTML Report'
             ])
-
-            // Clean up workspace
-            // cleanWs() // Optional: cleans the workspace after the build
         }
     }
 }
