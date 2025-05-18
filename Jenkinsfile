@@ -2,7 +2,7 @@ pipeline {
     agent any // Runs on any available agent (master by default in a simple setup)
 
     tools {
-        nodejs 'NodeJS-24' // Matches the NodeJS installation name configured in Jenkins
+        nodejs 'NodeJS_24' // Matches the NodeJS installation name configured in Jenkins
     }
 
     stages {
