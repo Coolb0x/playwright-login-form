@@ -83,10 +83,18 @@ export class RegistrationForm {
     }
   }
 
+  /**
+   * Toggles the visibility of the password field by clicking the visibility toggle button.
+   */
   async togglePasswordVisibility(): Promise<void> {
     return this.passwordVisibilityToggle.click();
   }
 
+  /**
+   * Asserts that the password field is visible (type="text"),
+   * the value matches the provided password, and the toggle button title is correct.
+   * @param passwordValue - The expected password value to be visible in the field.
+   */
   async expectPasswordVisibility(passwordValue): Promise<void> {
     const passwordFieldType = await this.passwordInput.getAttribute("type");
 
@@ -107,7 +115,7 @@ export class RegistrationForm {
 
   /**
    * Asserts the password strength bar's width and color for a given strength level.
-   * @param strength - The password strength level ("moderate", "strong", or "veryStrong").
+   * @param strength - The password strength level ("weak", "moderate", "strong", or "veryStrong").
    */
   async expectPasswordStrenghtBar(strength: string): Promise<void> {
     await test.step(`Check password strength bar for '${strength}'`, async () => {
