@@ -7,11 +7,23 @@ interface apiData {
   password: string;
 }
 
+/**
+ * Sends a POST request to the registration API endpoint with the provided data.
+ * @param request - The Playwright request context to use for the API call.
+ * @param data - The registration data to send in the request body.
+ * @returns The response object from the API call.
+ */
 export const callApiWithData = async (request: any, data: apiData) => {
   const response = await request.post("/api.php", { data });
   return response;
 };
 
+/**
+ * Checks the API response against the expected values from the test case data.
+ * Asserts status, message, and error fields for email, password, and confirmEmail as needed.
+ * @param response - The response object returned from the API call.
+ * @param apiRequestData - The test case data containing expected values for assertions.
+ */
 export const checkApiResponse = async (response: any, apiRequestData: any) => {
   const {
     testDescription,
