@@ -6,19 +6,29 @@ Test automation suite for a demo login form
 
 ### Setup Instructions
 
-1. **Install dependencies**
+1. **Clone the repository**
+   ```sh
+   git clone https://github.com/Coolb0x/playwright-login-form.git
+   cd playwright-login-form
+   ```
+2. **Install dependencies**
    ```sh
    npm install
    ```
-2. **Run all Playwright tests**
+   2.1. **(Linux only, required for WebKit and some browsers)**
+   Install system dependencies for Playwright browsers:
    ```sh
-   npx playwright test
+   sudo npx playwright install-deps
    ```
-3. **View Playwright HTML report**
+3. **Run all Playwright tests in UI**
+   ```sh
+   npx playwright test --ui
+   ```
+4. **View Playwright HTML report**
    ```sh
    npx playwright show-report
    ```
-4. **Run a specific test file**
+5. **Run a specific test file**
    ```sh
    npx playwright test tests/user-registration-form.spec.ts
    ```
