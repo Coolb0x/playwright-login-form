@@ -14,6 +14,7 @@ import { invalidPasswordInput } from "../test-data/invalid-password-input";
 import { validPasswordStrength } from "../test-data/valid-password-strength";
 import { apiRequests } from "../test-data/api-requests";
 import { callApiWithData, checkApiResponse } from "../utils/api-helpers";
+import { confirmEmailInput } from "../test-data/confirm-email-input";
 
 test.describe("Automation Test Suite - User Registration Form", () => {
   let registrationForm: RegistrationForm;
@@ -38,26 +39,15 @@ test.describe("Automation Test Suite - User Registration Form", () => {
 
   // Confirm Email field validation tests
   test.describe("Confirm Email field", async () => {
-    test("Fill in invalid email and invalid confirm email - Expect enter a valid email address, class error and disabled button", async () => {
-      // Both email and confirm email are invalid
-      await registrationForm.fillEmail(invalidEmailFormat.invalidEmailNoTld.value);
-      await registrationForm.fillConfirmEmail(invalidEmailFormat.invalidEmailNoTld.value);
-      await registrationForm.expectLineError("Please enter a valid email address", "email");
-    });
-
-    test("Fill in valid email and different confirm email - Expect emails do not match, class error and disabled button", async () => {
-      // Email and confirm email do not match
-      await registrationForm.fillEmail(validTestInput.validEmail);
-      await registrationForm.fillConfirmEmail(validTestInput.diffrentConfirmEmail);
-      await registrationForm.expectLineError("Emails do not match", "confirmEmail");
-    });
-
-    test("Fill in empty spaces for email and confirm email - Expect error class, and disabled confirm button", async () => {
-      // Both fields are empty/whitespace
-      await registrationForm.fillEmail(invalidEmailFormat.invalidEmailEmpty.value);
-      await registrationForm.fillConfirmEmail(invalidEmailFormat.invalidEmailEmpty.value);
-      await registrationForm.expectLineError("Email is required", "email");
-    });
+    for (const key of Object.keys(confirmEmailInput)) {
+      const { email, confirmEmail, testDescription, errorMessage, errorField } = confirmEmailInput[key];
+      test(testDescription, async () => {
+        // Fill email and confirm email with test data and check for error message and UI feedback
+        await registrationForm.fillEmail(email);
+        await registrationForm.fillConfirmEmail(confirmEmail);
+        await registrationForm.expectLineError(errorMessage, errorField);
+      });
+    }
   });
 
   // Password field validation and visibility toggle tests
